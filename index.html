@@ -1,422 +1,459 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ruleta de Grupos - Aprendizaje Cooperativo</title>
+    <title>Ruleta de Grupos Cooperativos</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #f43f5e;
+            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
         }
 
         body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-gradient);
             min-height: 100vh;
+            margin: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
-            color: white;
+            justify-content: center;
+            color: var(--text-main);
+            overflow-x: hidden;
+            padding-bottom: 50px;
         }
 
         .container {
-            max-width: 800px;
-            width: 100%;
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 2rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
             text-align: center;
+            max-width: 90%;
+            width: 500px;
+            z-index: 10;
+            position: relative;
         }
 
         h1 {
-            font-size: 2.5rem;
-            margin-bottom: 30px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
-            background-size: 400% 400%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: gradientShift 3s ease infinite;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
         }
 
-        @keyframes gradientShift {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-
-        .controls {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 40px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .group-selector {
-            margin-bottom: 20px;
+        .setup-section {
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         label {
-            font-size: 1.2rem;
-            font-weight: bold;
-            margin-bottom: 10px;
-            display: block;
+            font-weight: 600;
         }
 
         select {
-            padding: 12px 20px;
-            font-size: 1.1rem;
-            border: none;
-            border-radius: 10px;
-            background: white;
-            color: #333;
+            padding: 0.6rem 1.2rem;
+            border-radius: 1rem;
+            border: 2px solid #e5e7eb;
+            font-size: 1rem;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
+            transition: border-color 0.3s;
+            outline: none;
         }
 
-        select:hover {
-            transform: translateY(-2px);
+        select:focus {
+            border-color: var(--primary-color);
+        }
+
+        /* Botón de instrucciones */
+        .info-btn {
+            background: #f3f4f6;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin: 0 auto 1rem;
+            transition: all 0.2s;
+        }
+
+        .info-btn:hover {
+            background: #e5e7eb;
+            color: var(--text-main);
         }
 
         .wheel-container {
             position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 40px;
-            margin: 20px 0;
-            flex-wrap: wrap;
-        }
-
-        .wheel-section-container {
-            position: relative;
-        }
-
-        .legend {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            min-width: 200px;
-        }
-
-        .legend h3 {
-            margin-bottom: 15px;
-            font-size: 1.2rem;
-            color: #ffd700;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-            font-size: 1rem;
-        }
-
-        .legend-color {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            margin-right: 10px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .wheel {
             width: 300px;
             height: 300px;
+            margin: 1.5rem auto;
+        }
+
+        canvas#wheel-canvas {
+            width: 100%;
+            height: 100%;
             border-radius: 50%;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            transition: transform 3s cubic-bezier(0.23, 1, 0.32, 1);
+            box-shadow: 0 0 20px rgba(0,0,0,0.15);
+            transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1);
         }
 
-        .wheel-section {
+        .pointer {
             position: absolute;
-            width: 50%;
-            height: 50%;
-            transform-origin: 100% 100%;
-        }
-
-        .wheel-pointer {
-            position: absolute;
-            top: -10px;
+            top: -20px;
             left: 50%;
             transform: translateX(-50%);
             width: 0;
             height: 0;
             border-left: 15px solid transparent;
             border-right: 15px solid transparent;
-            border-top: 25px solid #ff4757;
-            z-index: 10;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            border-top: 30px solid var(--secondary-color);
+            z-index: 20;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
         }
 
         .spin-button {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            background: var(--primary-color);
             color: white;
             border: none;
-            padding: 15px 30px;
+            padding: 1rem 2.5rem;
             font-size: 1.2rem;
             font-weight: bold;
-            border-radius: 50px;
+            border-radius: 1rem;
             cursor: pointer;
-            margin: 20px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
-            transition: all 0.3s;
-            text-transform: uppercase;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
         .spin-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            transform: scale(1.05);
+            background: #4f46e5;
         }
 
         .spin-button:disabled {
-            opacity: 0.6;
+            background: #9ca3af;
             cursor: not-allowed;
             transform: none;
         }
 
-        .result {
-            margin-top: 30px;
-            min-height: 100px;
+        #result-display {
+            margin-top: 1.5rem;
+            height: 60px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        .winner {
-            font-size: 3rem;
+        .winner-text {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--secondary-color);
+            animation: pop 0.5s ease-out forwards;
+        }
+
+        /* Modal de Instrucciones */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal {
+            background: white;
+            padding: 2rem;
+            border-radius: 1.5rem;
+            max-width: 400px;
+            width: 85%;
+            text-align: left;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+        }
+
+        .modal h2 { color: var(--primary-color); margin-top: 0; }
+        .modal ul { padding-left: 1.2rem; line-height: 1.6; }
+        .modal li { margin-bottom: 8px; }
+        .close-modal {
+            display: block;
+            margin: 1.5rem auto 0;
+            padding: 0.5rem 1.5rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        /* Pie de página */
+        footer {
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: #4b5563;
+            z-index: 10;
+        }
+
+        footer a {
+            color: var(--primary-color);
+            text-decoration: none;
             font-weight: bold;
-            color: #ffd700;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
-            animation: bounce 0.6s ease-in-out;
         }
 
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-            40% { transform: translateY(-20px); }
-            60% { transform: translateY(-10px); }
+        footer a:hover {
+            text-decoration: underline;
         }
 
-        .fireworks {
+        @keyframes pop {
+            0% { transform: scale(0.5); opacity: 0; }
+            80% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        #fireworks-canvas {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: 1000;
-        }
-
-        .firework {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            border-radius: 50%;
-            animation: explode 1s ease-out forwards;
-        }
-
-        @keyframes explode {
-            0% {
-                transform: scale(0);
-                opacity: 1;
-            }
-            100% {
-                transform: scale(20);
-                opacity: 0;
-            }
-        }
-
-        @media (max-width: 768px) {
-            h1 { font-size: 2rem; }
-            .wheel { width: 250px; height: 250px; }
-            .winner { font-size: 2rem; }
-            .wheel-container { 
-                flex-direction: column; 
-                gap: 20px; 
-            }
-            .legend { 
-                min-width: auto; 
-                width: 100%; 
-                max-width: 300px; 
-            }
+            z-index: 5;
         }
     </style>
-<style type="text/css">
-.grande { font-size: 60px; }
-</style>
-<script>
-// Escribir aqui el código Javascript
-</script>
 </head>
 <body>
+
+    <canvas id="fireworks-canvas"></canvas>
+
     <div class="container">
-        <h1>🎯 Ruleta de Grupos 🎯</h1>
+        <h1>🎡 Selector de Grupos</h1>
         
-        <div class="controls">
-            <div class="group-selector">
-                <label for="groupCount">Selecciona el número de grupos:</label>
-                <select id="groupCount" onchange="updateWheel()">
-                    <option value="">-- Elige el número --</option>
-                    <option value="1">1 grupo</option>
-                    <option value="2">2 grupos</option>
-                    <option value="3">3 grupos</option>
-                    <option value="4">4 grupos</option>
-                    <option value="5">5 grupos</option>
-                    <option value="6">6 grupos</option>
-                    <option value="7">7 grupos</option>
-                    <option value="8">8 grupos</option>
-                    <option value="9">9 grupos</option>
-                    <option value="10">10 grupos</option>
-                    <option value="11">11 grupos</option>
-                    <option value="12">12 grupos</option>
-                    <option value="13">13 grupos</option>
-                    <option value="14">14 grupos</option>
-                    <option value="15">15 grupos</option>
-                </select>
-            </div>
+        <button class="info-btn" id="info-btn">
+            <span>ℹ️</span> Instrucciones de uso
+        </button>
+
+        <div class="setup-section">
+            <label for="group-count">Número de grupos en clase:</label>
+            <select id="group-count">
+                <!-- Se llenará vía JS -->
+            </select>
         </div>
 
-        <div class="wheel-container" id="wheelContainer" style="display: none;">
-            <div class="wheel-section-container">
-                <div class="wheel-pointer"></div>
-                <div class="wheel" id="wheel"></div>
-                <button class="spin-button" id="spinButton" onclick="spinWheel()">
-                    🎲 ¡GIRAR RULETA! 🎲
-                </button>
-            </div>
-            <div class="legend" id="legend">
-                <h3>🎨 Leyenda de Grupos</h3>
-                <div id="legendItems"></div>
-            </div>
+        <div class="wheel-container">
+            <div class="pointer"></div>
+            <canvas id="wheel-canvas" width="600" height="600"></canvas>
         </div>
 
-        <div class="result" id="result"></div>
+        <button class="spin-button" id="spin-btn">¡GIRAR RULETA!</button>
+
+        <div id="result-display"></div>
     </div>
 
-    <div class="fireworks" id="fireworks"></div>
+    <footer>
+        Creada por <a href="https://blogsaverroes.juntadeandalucia.es/ellocodelamochila/" target="_blank">El loco de la mochila</a>
+    </footer>
+
+    <!-- Modal de Instrucciones -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal">
+            <h2>Cómo usar la ruleta</h2>
+            <ul>
+                <li><strong>Selecciona:</strong> Elige en el menú desplegable cuántos grupos cooperativos tienes hoy.</li>
+                <li><strong>Gira:</strong> Pulsa el botón central para que la ruleta comience a girar aleatoriamente.</li>
+                <li><strong>Atención:</strong> Espera a que se detenga para ver el grupo ganador.</li>
+                <li><strong>Celebra:</strong> ¡El grupo seleccionado aparecerá en pantalla con fuegos artificiales!</li>
+                <li><strong>Repite:</strong> Puedes girar tantas veces como necesites para nuevas participaciones.</li>
+            </ul>
+            <button class="close-modal" id="close-modal">Entendido</button>
+        </div>
+    </div>
 
     <script>
-        let currentGroups = 0;
+        const canvas = document.getElementById('wheel-canvas');
+        const ctx = canvas.getContext('2d');
+        const spinBtn = document.getElementById('spin-btn');
+        const groupSelect = document.getElementById('group-count');
+        const resultDisplay = document.getElementById('result-display');
+        const fwCanvas = document.getElementById('fireworks-canvas');
+        const fwCtx = fwCanvas.getContext('2d');
+        const infoBtn = document.getElementById('info-btn');
+        const modalOverlay = document.getElementById('modal-overlay');
+        const closeModal = document.getElementById('close-modal');
+
+        let numGroups = 4;
+        let currentRotation = 0;
         let isSpinning = false;
 
         const colors = [
-            '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', 
-            '#ff9ff3', '#54a0ff', '#5f27cd', '#00d2d3', '#ff9f43',
-            '#10ac84', '#ee5a24', '#0abde3', '#3867d6', '#8854d0'
+            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', 
+            '#FF9F40', '#8AC926', '#1982C4', '#6A4C93', '#F94144',
+            '#F8961E', '#90BE6D', '#277DA1', '#577590', '#F3722C'
         ];
 
-        function updateWheel() {
-            const groupCount = parseInt(document.getElementById('groupCount').value);
-            const wheelContainer = document.getElementById('wheelContainer');
-            const wheel = document.getElementById('wheel');
-            const legendItems = document.getElementById('legendItems');
-            
-            if (!groupCount) {
-                wheelContainer.style.display = 'none';
-                return;
+        function initSelect() {
+            for (let i = 1; i <= 15; i++) {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = `${i} ${i === 1 ? 'Grupo' : 'Grupos'}`;
+                if (i === 4) opt.selected = true;
+                groupSelect.appendChild(opt);
             }
-
-            currentGroups = groupCount;
-            wheelContainer.style.display = 'flex';
-            wheel.innerHTML = '';
-            legendItems.innerHTML = '';
-
-            const anglePerSection = 360 / groupCount;
-
-            // Crear secciones de la ruleta
-            for (let i = 0; i < groupCount; i++) {
-                const section = document.createElement('div');
-                section.className = 'wheel-section';
-                section.style.backgroundColor = colors[i % colors.length];
-                section.style.transform = `rotate(${i * anglePerSection}deg) skew(${90 - anglePerSection}deg)`;
-                wheel.appendChild(section);
-            }
-
-            // Crear leyenda
-            for (let i = 0; i < groupCount; i++) {
-                const legendItem = document.createElement('div');
-                legendItem.className = 'legend-item';
-                
-                const colorCircle = document.createElement('div');
-                colorCircle.className = 'legend-color';
-                colorCircle.style.backgroundColor = colors[i % colors.length];
-                
-                const groupText = document.createElement('span');
-                groupText.textContent = `Grupo ${i + 1}`;
-                
-                legendItem.appendChild(colorCircle);
-                legendItem.appendChild(groupText);
-                legendItems.appendChild(legendItem);
-            }
-
-            document.getElementById('result').innerHTML = '';
         }
 
-        function spinWheel() {
-            if (isSpinning || currentGroups === 0) return;
+        function drawWheel() {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = canvas.width / 2 - 10;
+            const sliceAngle = (2 * Math.PI) / numGroups;
 
-            isSpinning = true;
-            const spinButton = document.getElementById('spinButton');
-            const wheel = document.getElementById('wheel');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < numGroups; i++) {
+                const angle = i * sliceAngle;
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, angle, angle + sliceAngle);
+                ctx.closePath();
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.fill();
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 4;
+                ctx.stroke();
+
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(angle + sliceAngle / 2);
+                ctx.textAlign = "right";
+                ctx.fillStyle = "white";
+                ctx.font = "bold 34px Arial";
+                ctx.fillText(`G${i + 1}`, radius - 30, 10);
+                ctx.restore();
+            }
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 40, 0, 2 * Math.PI);
+            ctx.fillStyle = 'white';
+            ctx.fill();
+            ctx.strokeStyle = '#e5e7eb';
+            ctx.stroke();
+        }
+
+        function spin() {
+            if (isSpinning) return;
             
-            spinButton.disabled = true;
-            spinButton.textContent = '🌪️ GIRANDO... 🌪️';
-
-            // Generar rotación aleatoria (múltiples vueltas + ángulo final)
-            const spins = 5 + Math.random() * 5; // Entre 5 y 10 vueltas
-            const finalAngle = Math.random() * 360;
-            const totalRotation = spins * 360 + finalAngle;
-
-            wheel.style.transform = `rotate(${totalRotation}deg)`;
+            isSpinning = true;
+            spinBtn.disabled = true;
+            resultDisplay.innerHTML = "";
+            
+            const extraRotation = Math.floor(Math.random() * 360) + 1800; 
+            currentRotation += extraRotation;
+            
+            canvas.style.transform = `rotate(${currentRotation}deg)`;
 
             setTimeout(() => {
-                // Calcular qué grupo fue seleccionado
-                const normalizedAngle = (360 - (finalAngle % 360)) % 360;
-                const anglePerSection = 360 / currentGroups;
-                const selectedGroup = Math.floor(normalizedAngle / anglePerSection) + 1;
-
-                showWinner(selectedGroup);
-                createFireworks();
-
                 isSpinning = false;
-                spinButton.disabled = false;
-                spinButton.textContent = '🎲 ¡GIRAR OTRA VEZ! 🎲';
-            }, 3000);
+                spinBtn.disabled = false;
+                
+                const actualDegrees = currentRotation % 360;
+                const sliceSize = 360 / numGroups;
+                let winningIndex = Math.floor((360 - actualDegrees + 270) % 360 / sliceSize);
+                
+                const groupName = `GRUPO ${winningIndex + 1}`;
+                showWinner(groupName);
+            }, 4000);
         }
 
-        function showWinner(groupNumber) {
-            const result = document.getElementById('result');
-            result.innerHTML = `<div class="winner">🎉 ¡GRUPO ${groupNumber}! 🎉</div>`;
+        function showWinner(name) {
+            resultDisplay.innerHTML = `<div class="winner-text">¡Le toca al ${name}!</div>`;
+            startFireworks();
         }
 
-        function createFireworks() {
-            const fireworksContainer = document.getElementById('fireworks');
-            fireworksContainer.innerHTML = '';
-
-            for (let i = 0; i < 15; i++) {
-                setTimeout(() => {
-                    const firework = document.createElement('div');
-                    firework.className = 'firework';
-                    firework.style.left = Math.random() * 100 + '%';
-                    firework.style.top = Math.random() * 100 + '%';
-                    firework.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                    
-                    fireworksContainer.appendChild(firework);
-
-                    setTimeout(() => {
-                        firework.remove();
-                    }, 1000);
-                }, i * 100);
+        // Lógica de Fuegos Artificiales
+        let particles = [];
+        function createFirework() {
+            const x = Math.random() * fwCanvas.width;
+            const y = Math.random() * fwCanvas.height * 0.5;
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            
+            for (let i = 0; i < 30; i++) {
+                particles.push({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.5) * 10,
+                    life: 1,
+                    color: color
+                });
             }
         }
+
+        function updateFireworks() {
+            fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
+            particles.forEach((p, i) => {
+                p.x += p.vx; p.y += p.vy;
+                p.vy += 0.08;
+                p.life -= 0.015;
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                } else {
+                    fwCtx.beginPath();
+                    fwCtx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+                    fwCtx.fillStyle = p.color;
+                    fwCtx.globalAlpha = p.life;
+                    fwCtx.fill();
+                }
+            });
+            if (particles.length > 0) requestAnimationFrame(updateFireworks);
+        }
+
+        function startFireworks() {
+            for(let i=0; i<8; i++) {
+                setTimeout(createFirework, i * 200);
+            }
+            updateFireworks();
+        }
+
+        // Eventos de Modal
+        infoBtn.addEventListener('click', () => modalOverlay.style.display = 'flex');
+        closeModal.addEventListener('click', () => modalOverlay.style.display = 'none');
+        window.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) modalOverlay.style.display = 'none';
+        });
+
+        // Otros Eventos
+        groupSelect.addEventListener('change', (e) => {
+            numGroups = parseInt(e.target.value);
+            currentRotation = 0;
+            canvas.style.transform = `rotate(0deg)`;
+            resultDisplay.innerHTML = "";
+            drawWheel();
+        });
+
+        spinBtn.addEventListener('click', spin);
+
+        window.addEventListener('resize', () => {
+            fwCanvas.width = window.innerWidth;
+            fwCanvas.height = window.innerHeight;
+            drawWheel();
+        });
+
+        window.onload = () => {
+            fwCanvas.width = window.innerWidth;
+            fwCanvas.height = window.innerHeight;
+            initSelect();
+            drawWheel();
+        };
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'975c331ab26a014c',t:'MTc1NjMwNDMyMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><iframe height="1" width="1" style="position: absolute; top: 0px; left: 0px; border: medium; visibility: hidden;"></iframe>
-
-
-</body></html>
+</body>
+</html>
