@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruleta de Grupos Cooperativos</title>
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #f43f5e;
+            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+            overflow-x: hidden;
+            padding-bottom: 50px;
+        }
+
+        .container {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 2rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            text-align: center;
+            max-width: 90%;
+            width: 500px;
+            z-index: 10;
+            position: relative;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+        }
+
+        .setup-section {
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-weight: 600;
+        }
+
+        select {
+            padding: 0.6rem 1.2rem;
+            border-radius: 1rem;
+            border: 2px solid #e5e7eb;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: border-color 0.3s;
+            outline: none;
+        }
+
+        select:focus {
+            border-color: var(--primary-color);
+        }
+
+        /* Botón de instrucciones */
+        .info-btn {
+            background: #f3f4f6;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin: 0 auto 1rem;
+            transition: all 0.2s;
+        }
+
+        .info-btn:hover {
+            background: #e5e7eb;
+            color: var(--text-main);
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 1.5rem auto;
+        }
+
+        canvas#wheel-canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(0,0,0,0.15);
+            transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1);
+        }
+
+        .pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid var(--secondary-color);
+            z-index: 20;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
+        }
+
+        .spin-button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 1rem 2.5rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 1rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .spin-button:hover {
+            transform: scale(1.05);
+            background: #4f46e5;
+        }
+
+        .spin-button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #result-display {
+            margin-top: 1.5rem;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .winner-text {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--secondary-color);
+            animation: pop 0.5s ease-out forwards;
+        }
+
+        /* Modal de Instrucciones */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal {
+            background: white;
+            padding: 2rem;
+            border-radius: 1.5rem;
+            max-width: 400px;
+            width: 85%;
+            text-align: left;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+        }
+
+        .modal h2 { color: var(--primary-color); margin-top: 0; }
+        .modal ul { padding-left: 1.2rem; line-height: 1.6; }
+        .modal li { margin-bottom: 8px; }
+        .close-modal {
+            display: block;
+            margin: 1.5rem auto 0;
+            padding: 0.5rem 1.5rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        /* Pie de página */
+        footer {
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: #4b5563;
+            z-index: 10;
+        }
+
+        footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0.5); opacity: 0; }
+            80% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        #fireworks-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+    </style>
+<style type="text/css">
+.grande { font-size: 60px; }
+</style>
+<script>
+// Escribir aqui el código Javascript
+</script>
+</head>
+<body>
+
+    <canvas id="fireworks-canvas" width="814" height="821"></canvas>
+
+    <div class="container">
+        <h1>🎡 Selector de Grupos</h1>
+        
+        <button class="info-btn" id="info-btn">
+            <span>ℹ️</span> Instrucciones de uso
+        </button>
+
+        <div class="setup-section">
+            <label for="group-count">Número de grupos en clase:</label>
+            <select id="group-count">
+                <!-- Se llenará vía JS -->
+            <option value="1">1 Grupo</option><option value="2">2 Grupos</option><option value="3">3 Grupos</option><option value="4">4 Grupos</option><option value="5">5 Grupos</option><option value="6">6 Grupos</option><option value="7">7 Grupos</option><option value="8">8 Grupos</option><option value="9">9 Grupos</option><option value="10">10 Grupos</option><option value="11">11 Grupos</option><option value="12">12 Grupos</option><option value="13">13 Grupos</option><option value="14">14 Grupos</option><option value="15">15 Grupos</option></select>
+        </div>
+
+        <div class="wheel-container">
+            <div class="pointer"></div>
+            <canvas id="wheel-canvas" width="600" height="600"></canvas>
+        </div>
+
+        <button class="spin-button" id="spin-btn">¡GIRAR RULETA!</button>
+
+        <div id="result-display"></div>
+    </div>
+
+    <footer>
+        Creada por <a href="https://blogsaverroes.juntadeandalucia.es/ellocodelamochila/" target="_blank">El loco de la mochila</a>
+    </footer>
+
+    <!-- Modal de Instrucciones -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal">
+            <h2>Cómo usar la ruleta</h2>
+            <ul>
+                <li><strong>Selecciona:</strong> Elige en el menú desplegable cuántos grupos cooperativos tienes hoy.</li>
+                <li><strong>Gira:</strong> Pulsa el botón central para que la ruleta comience a girar aleatoriamente.</li>
+                <li><strong>Atención:</strong> Espera a que se detenga para ver el grupo ganador.</li>
+                <li><strong>Celebra:</strong> ¡El grupo seleccionado aparecerá en pantalla con fuegos artificiales!</li>
+                <li><strong>Repite:</strong> Puedes girar tantas veces como necesites para nuevas participaciones.</li>
+            </ul>
+            <button class="close-modal" id="close-modal">Entendido</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('wheel-canvas');
+        const ctx = canvas.getContext('2d');
+        const spinBtn = document.getElementById('spin-btn');
+        const groupSelect = document.getElementById('group-count');
+        const resultDisplay = document.getElementById('result-display');
+        const fwCanvas = document.getElementById('fireworks-canvas');
+        const fwCtx = fwCanvas.getContext('2d');
+        const infoBtn = document.getElementById('info-btn');
+        const modalOverlay = document.getElementById('modal-overlay');
+        const closeModal = document.getElementById('close-modal');
+
+        let numGroups = 4;
+        let currentRotation = 0;
+        let isSpinning = false;
+
+        const colors = [
+            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', 
+            '#FF9F40', '#8AC926', '#1982C4', '#6A4C93', '#F94144',
+            '#F8961E', '#90BE6D', '#277DA1', '#577590', '#F3722C'
+        ];
+
+        function initSelect() {
+            for (let i = 1; i <= 15; i++) {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = `${i} ${i === 1 ? 'Grupo' : 'Grupos'}`;
+                if (i === 4) opt.selected = true;
+                groupSelect.appendChild(opt);
+            }
+        }
+
+        function drawWheel() {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = canvas.width / 2 - 10;
+            const sliceAngle = (2 * Math.PI) / numGroups;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < numGroups; i++) {
+                const angle = i * sliceAngle;
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, angle, angle + sliceAngle);
+                ctx.closePath();
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.fill();
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 4;
+                ctx.stroke();
+
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(angle + sliceAngle / 2);
+                ctx.textAlign = "right";
+                ctx.fillStyle = "white";
+                ctx.font = "bold 34px Arial";
+                ctx.fillText(`G${i + 1}`, radius - 30, 10);
+                ctx.restore();
+            }
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 40, 0, 2 * Math.PI);
+            ctx.fillStyle = 'white';
+            ctx.fill();
+            ctx.strokeStyle = '#e5e7eb';
+            ctx.stroke();
+        }
+
+        function spin() {
+            if (isSpinning) return;
+            
+            isSpinning = true;
+            spinBtn.disabled = true;
+            resultDisplay.innerHTML = "";
+            
+            const extraRotation = Math.floor(Math.random() * 360) + 1800; 
+            currentRotation += extraRotation;
+            
+            canvas.style.transform = `rotate(${currentRotation}deg)`;
+
+            setTimeout(() => {
+                isSpinning = false;
+                spinBtn.disabled = false;
+                
+                const actualDegrees = currentRotation % 360;
+                const sliceSize = 360 / numGroups;
+                let winningIndex = Math.floor((360 - actualDegrees + 270) % 360 / sliceSize);
+                
+                const groupName = `GRUPO ${winningIndex + 1}`;
+                showWinner(groupName);
+            }, 4000);
+        }
+
+        function showWinner(name) {
+            resultDisplay.innerHTML = `<div class="winner-text">¡Le toca al ${name}!</div>`;
+            startFireworks();
+        }
+
+        // Lógica de Fuegos Artificiales
+        let particles = [];
+        function createFirework() {
+            const x = Math.random() * fwCanvas.width;
+            const y = Math.random() * fwCanvas.height * 0.5;
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            
+            for (let i = 0; i < 30; i++) {
+                particles.push({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.5) * 10,
+                    life: 1,
+                    color: color
+                });
+            }
+        }
+
+        function updateFireworks() {
+            fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
+            particles.forEach((p, i) => {
+                p.x += p.vx; p.y += p.vy;
+                p.vy += 0.08;
+                p.life -= 0.015;
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                } else {
+                    fwCtx.beginPath();
+                    fwCtx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+                    fwCtx.fillStyle = p.color;
+                    fwCtx.globalAlpha = p.life;
+                    fwCtx.fill();
+                }
+            });
+            if (particles.length > 0) requestAnimationFrame(updateFireworks);
+        }
+
+        function startFireworks() {
+            for(let i=0; i<8; i++) {
+                setTimeout(createFirework, i * 200);
+            }
+            updateFireworks();
+        }
+
+        // Eventos de Modal
+        infoBtn.addEventListener('click', () => modalOverlay.style.display = 'flex');
+        closeModal.addEventListener('click', () => modalOverlay.style.display = 'none');
+        window.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) modalOverlay.style.display = 'none';
+        });
+
+        // Otros Eventos
+        groupSelect.addEventListener('change', (e) => {
+            numGroups = parseInt(e.target.value);
+            currentRotation = 0;
+            canvas.style.transform = `rotate(0deg)`;
+            resultDisplay.innerHTML = "";
+            drawWheel();
+        });
+
+        spinBtn.addEventListener('click', spin);
+
+        window.addEventListener('resize', () => {
+            fwCanvas.width = window.innerWidth;
+            fwCanvas.height = window.innerHeight;
+            drawWheel();
+        });
+
+        window.onload = () => {
+            fwCanvas.width = window.innerWidth;
+            fwCanvas.height = window.innerHeight;
+            initSelect();
+            drawWheel();
+        };
+    </script>
+
+
+</body></html>
